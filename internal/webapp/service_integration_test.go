@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestPortsStoring(t *testing.T) {
@@ -28,12 +29,21 @@ func TestPortsStoring(t *testing.T) {
 		_, err = part.Write(testFile)
 		require.NoError(t, err, "failed to write part to file")
 
+		// setup a server service
+		log, err := zap.NewDevelopment()
+		require.NoError(t, err)
+		service := NewService(log)
+		mux := http.NewServeMux()
+		handler := NewServiceHandler(service, &http.Server{Handler: mux})
+		handler.Register(mux)
+
 		// send a request
 		req := httptest.NewRequest(http.MethodPost, "/ports", requestBody)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		recorder := httptest.NewRecorder()
 
 		// webapp service call
+		handler.ports(recorder, req)
 
 		// assert that json has stored all values by requesting next call
 		assert.Equal(t, http.StatusCreated, recorder.Code)

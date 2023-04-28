@@ -1,4 +1,4 @@
-package web_app
+package webapp
 
 import (
 	"bytes"
@@ -29,11 +29,11 @@ func TestPortsStoring(t *testing.T) {
 		require.NoError(t, err, "failed to write part to file")
 
 		// send a request
-		req := httptest.NewRequest("POST", "/ports", requestBody)
+		req := httptest.NewRequest(http.MethodPost, "/ports", requestBody)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		recorder := httptest.NewRecorder()
 
-		// web-app service call
+		// webapp service call
 
 		// assert that json has stored all values by requesting next call
 		assert.Equal(t, http.StatusCreated, recorder.Code)

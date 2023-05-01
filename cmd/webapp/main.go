@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 	"github.com/caarlos0/env/v6"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/arturskrzydlo/ports/internal/grpc"
 
 	"github.com/arturskrzydlo/ports/internal/webapp"
 )
@@ -20,6 +23,8 @@ type appConfig struct {
 	ReadHeaderTimeout int    `env:"READ_HEADER_TIMEOUT_IN_SEC" envDefault:"5"`
 	WriteTimeout      int    `env:"WRITE_TIMEOUT_IN_SEC" envDefault:"5"`
 	IdleTimeout       int    `env:"IDLE_TIMEOUT_IN_SEC" envDefault:"5"`
+
+	PortsGRPServerAddress string `env:"PORTS_SERVICE_ADDRESS" envDefault:"0.0.0.0:8090"`
 }
 
 // ParseConfig parses a struct containing `env` tags and loads its values from
@@ -46,7 +51,14 @@ func main() {
 	)
 	log := zap.New(core)
 
-	service := webapp.NewService(log)
+	conn, err := grpc.NewClientConnectionContext(context.Background(), cfg.PortsGRPServerAddress)
+	if err != nil {
+		log.Error("error while creating a gRPC connection to ports service", zap.Error(err))
+		return
+	}
+	defer conn.Close()
+
+	service := webapp.NewService(log, grpc.NewPortServiceClient(conn))
 
 	mux := http.NewServeMux()
 	srv := &http.Server{

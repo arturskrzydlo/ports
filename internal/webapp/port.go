@@ -3,6 +3,8 @@ package webapp
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/arturskrzydlo/ports/internal/grpc"
 )
 
 type Port struct {
@@ -39,4 +41,19 @@ func decodePort(decoder *json.Decoder) (*Port, error) {
 	}
 
 	return port, nil
+}
+
+func portToPB(port *Port) *grpc.Port {
+	return &grpc.Port{
+		Name:        port.Name,
+		City:        port.City,
+		Country:     port.Country,
+		Alias:       port.Alias,
+		Regions:     port.Regions,
+		Coordinates: port.Coordinates,
+		Province:    port.Province,
+		Timezone:    port.Timezone,
+		Unlocs:      port.Unlocs,
+		Code:        port.Code,
+	}
 }

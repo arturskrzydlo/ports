@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package ports;
+
+option go_package = "github.com/arturskrzydlo/ports/internal/grpc";
+
+import "google/protobuf/empty.proto";
+
+service PortService {
+  rpc CreatePort(CreatePortRequest) returns (google.protobuf.Empty) {}
+  rpc GetPorts(google.protobuf.Empty) returns (GetPortsResponse) {}
+}
+
+message Port {
+  string name = 1;
+  string city = 2;
+  string country = 3;
+  repeated string alias = 4;
+  repeated string regions = 5;
+  repeated double coordinates = 6;
+  string province = 7;
+  string timezone = 8;
+  repeated string unlocs = 9;
+  string code = 10;
+}
+
+message CreatePortRequest {
+  Port port = 1;
+}
+
+message GetPortsResponse {
+  repeated Port ports = 1;
+}

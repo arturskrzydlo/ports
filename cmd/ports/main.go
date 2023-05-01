@@ -11,7 +11,7 @@ import (
 
 	"github.com/arturskrzydlo/ports/internal/ports"
 
-	"github.com/arturskrzydlo/ports/internal/grpc"
+	"github.com/arturskrzydlo/ports/internal/pb"
 )
 
 type appConfig struct {
@@ -34,13 +34,13 @@ func main() {
 	)
 	log := zap.New(core)
 
-	grpcServer, err := grpc.NewServer(cfg.GRPCServerAddress, log)
+	grpcServer, err := ports.NewServer(cfg.GRPCServerAddress, log)
 	if err != nil {
 		log.Error("error while creating a gRPC connection to ports service", zap.Error(err))
 		return
 	}
 
-	grpc.RegisterPortServiceServer(grpcServer, ports.NewEligibilityService(log))
+	pb.RegisterPortServiceServer(grpcServer, ports.NewEligibilityService(log))
 	if err = grpcServer.Run(context.Background()); err != nil {
 		log.Error("ports server experienced run error", zap.Error(err))
 		return

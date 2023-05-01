@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  ports-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-ports
+    environment:
+      GRPC_SERV_ADDRESS: :8090
+    ports:
+      - "9090:9090"
+
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile-webapp
+    environment:
+      SERV_ADDRESS: :8080
+      PORTS_GRPC_ADDRESS: ports-service:8090
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ports-service
+
+
+

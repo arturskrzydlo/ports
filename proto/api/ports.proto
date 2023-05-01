@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ports;
 
-option go_package = "github.com/arturskrzydlo/ports/internal/grpc";
+option go_package = "github.com/arturskrzydlo/ports/internal/pb";
 
 import "google/protobuf/empty.proto";
 

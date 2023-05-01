@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/arturskrzydlo/ports/internal/grpc"
+	"github.com/arturskrzydlo/ports/internal/pb"
 )
 
 type Port struct {
@@ -43,8 +43,8 @@ func decodePort(decoder *json.Decoder) (*Port, error) {
 	return port, nil
 }
 
-func portToPB(port *Port) *grpc.Port {
-	return &grpc.Port{
+func portToPB(port *Port) *pb.Port {
+	return &pb.Port{
 		Name:        port.Name,
 		City:        port.City,
 		Country:     port.Country,

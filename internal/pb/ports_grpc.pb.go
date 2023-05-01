@@ -4,7 +4,7 @@
 // - protoc             v3.21.6
 // source: ports.proto
 
-package grpc
+package pb
 
 import (
 	context "context"

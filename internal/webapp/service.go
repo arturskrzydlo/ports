@@ -10,7 +10,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/arturskrzydlo/ports/internal/grpc"
+	"github.com/arturskrzydlo/ports/internal/pb"
 )
 
 const (
@@ -30,7 +30,7 @@ type ServiceHandler struct {
 
 type Service struct {
 	log         *zap.Logger
-	portsClient grpc.PortServiceClient
+	portsClient pb.PortServiceClient
 }
 
 type errorResp struct {
@@ -110,13 +110,13 @@ func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortCodes [
 	return createdPortCodes, nil
 }
 
-func NewService(logger *zap.Logger, portsClient grpc.PortServiceClient) *Service {
+func NewService(logger *zap.Logger, portsClient pb.PortServiceClient) *Service {
 	return &Service{log: logger, portsClient: portsClient}
 }
 
 func (s Service) CreatePort(ctx context.Context, port *Port) error {
 	// send call via grpc to ports service to create a new port
-	_, err := s.portsClient.CreatePort(ctx, &grpc.CreatePortRequest{Port: portToPB(port)})
+	_, err := s.portsClient.CreatePort(ctx, &pb.CreatePortRequest{Port: portToPB(port)})
 	if err != nil {
 		return fmt.Errorf("failed to Create ports in Ports service:%w", err)
 	}

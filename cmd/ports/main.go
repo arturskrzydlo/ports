@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/arturskrzydlo/ports/internal/ports/adapters"
+
 	"github.com/arturskrzydlo/ports/internal/ports"
 
 	"github.com/arturskrzydlo/ports/internal/pb"
@@ -40,7 +42,7 @@ func main() {
 		return
 	}
 
-	pb.RegisterPortServiceServer(grpcServer, ports.NewPortsService(log))
+	pb.RegisterPortServiceServer(grpcServer, ports.NewPortsService(log, adapters.NewInMemoryRepo(log)))
 	if err = grpcServer.Run(context.Background()); err != nil {
 		log.Error("ports server experienced run error", zap.Error(err))
 		return

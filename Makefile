@@ -27,7 +27,7 @@ lint: ## Lint the source code.
 	$(GOBIN)/golangci-lint run --config $(shell pwd)/build/.golangci.yml --verbose ./...
 
 .PHONY: clean-integration-tests
-clean-integration-tests: ## Run fake account api server
+clean-integration-tests: ## clean integration test by running down docker compose
 	docker-compose -f docker-compose-test.yml --project-name ports-service-test down
 
 
@@ -38,11 +38,12 @@ prepare-integration-tests:  ## Run ports server before integration tests
 .PHONY: all-tests
 all-tests: prepare-integration-tests ## Run all test (unit + integration)
 	$(GO) test -v -tags=integration ./...
+	$(MAKE) clean-integration-tests
 
 .PHONY: tests
 tests: ## Run unit tests
 	$(GO) test -v  ./...
 
 .PHONY: tidy
-tidy: ## Tidy go modules and re-vendor
+tidy: ## Tidy go modules
 	@go mod tidy

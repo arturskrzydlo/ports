@@ -6,6 +6,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/emptypb"
+
+	"github.com/arturskrzydlo/ports/internal/ports/adapters"
 
 	"github.com/arturskrzydlo/ports/internal/pb"
 )
@@ -13,7 +16,7 @@ import (
 type portsServiceSuite struct {
 	suite.Suite
 
-	repo    PortsRepo
+	repo    Repository
 	service pb.PortServiceServer
 }
 
@@ -24,12 +27,47 @@ func TestRepository(t *testing.T) {
 func (s *portsServiceSuite) SetupSuite() {
 	log, err := zap.NewDevelopment()
 	s.Require().NoError(err)
-	s.service = NewPortsService(log)
+
+	s.repo = adapters.NewInMemoryRepo(log)
+	s.service = NewPortsService(log, s.repo)
 }
 
 func (s *portsServiceSuite) TestStoringPorts() {
-	// given
-	portToStore := pb.Port{
+	s.Run("should store new port", func() {
+		// given
+		portToStore := s.createPbPort()
+
+		// when
+		_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: portToStore})
+
+		// then
+		s.Require().NoError(err)
+		portsResp, err := s.service.GetPorts(context.Background(), new(emptypb.Empty))
+		s.Assert().Len(portsResp.Ports, 1)
+		s.Assert().Equal(s.createPbPort(), portsResp.Ports[0])
+	})
+
+	s.Run("should update already existing port", func() {
+		// given
+		portToStore := s.createPbPort()
+		_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: portToStore})
+
+		updatedPort := s.createPbPort()
+		updatedPort.Name = "updated-name"
+
+		// when
+		_, err = s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: updatedPort})
+
+		// then
+		s.Require().NoError(err)
+		portsResp, err := s.service.GetPorts(context.Background(), new(emptypb.Empty))
+		s.Assert().Len(portsResp.Ports, 1)
+		s.Assert().Equal(updatedPort.Name, portsResp.Ports[0].Name)
+	})
+}
+
+func (s *portsServiceSuite) createPbPort() *pb.Port {
+	return &pb.Port{
 		Name:        "name",
 		City:        "London",
 		Country:     "UK",
@@ -42,12 +80,4 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		Code:        "some-code",
 		Id:          "some-id",
 	}
-
-	// when
-	_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: &portToStore})
-
-	// then
-	ports, err := s.repo.GetPorts(context.Background())
-	s.Assert().Len(ports, 1)
-	s.Assert().Equal(portToStore, ports[0])
 }

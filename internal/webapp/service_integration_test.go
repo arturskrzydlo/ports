@@ -43,7 +43,7 @@ func TestPortsStoring(t *testing.T) {
 		// then
 		assert.Equal(t, http.StatusCreated, recorder.Code)
 		// all ports from ports.json file
-		expectedResponse := `["52000","52001"]`
+		expectedResponse := `["AEAJM","AEAUH"]`
 		assert.Equal(t, expectedResponse, recorder.Body.String())
 		// assert that json has stored all values by requesting next call
 		/*		recorder = httptest.NewRecorder()

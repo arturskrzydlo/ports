@@ -78,7 +78,7 @@ func (sh *ServiceHandler) ports(respWriter http.ResponseWriter, request *http.Re
 	sh.renderResponse(respWriter, createdPortNames, http.StatusCreated)
 }
 
-func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortCodes []string, err error) {
+func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []string, err error) {
 	// Get the JSON file from the request body
 	err = request.ParseMultipartForm(maxPartSizeInMB << 20)
 	if err != nil {
@@ -92,22 +92,22 @@ func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortCodes [
 
 	fileReader := bufio.NewReader(file)
 	decoder := json.NewDecoder(fileReader)
-	createdPortCodes = make([]string, 0)
+	createdPortIDs = make([]string, 0)
 
 	for decoder.More() {
 		port, decodeErr := decodePort(decoder)
 		if decodeErr != nil {
-			return createdPortCodes, decodeErr
+			return createdPortIDs, decodeErr
 		}
 		if port != nil {
 			err = sh.svc.CreatePort(request.Context(), port)
 			if err != nil {
-				return createdPortCodes, fmt.Errorf("failed to create port %v, errMsg=%w", port, err)
+				return createdPortIDs, fmt.Errorf("failed to create port %v, errMsg=%w", port, err)
 			}
-			createdPortCodes = append(createdPortCodes, port.Code)
+			createdPortIDs = append(createdPortIDs, port.ID)
 		}
 	}
-	return createdPortCodes, nil
+	return createdPortIDs, nil
 }
 
 func NewService(logger *zap.Logger, portsClient pb.PortServiceClient) *Service {

@@ -1,6 +1,7 @@
 package port
 
 type Port struct {
+	ID          string
 	Name        string
 	City        string
 	Country     string
@@ -13,7 +14,8 @@ type Port struct {
 	Code        string
 }
 
-func NewPort(name string,
+func NewPort(id string,
+	name string,
 	city string,
 	country string,
 	alias []string,
@@ -25,6 +27,7 @@ func NewPort(name string,
 	code string,
 ) *Port {
 	return &Port{
+		ID:          id,
 		Name:        name,
 		City:        city,
 		Country:     country,

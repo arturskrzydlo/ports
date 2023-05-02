@@ -9,11 +9,13 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/arturskrzydlo/ports/internal/common/grpc"
+
+	"github.com/arturskrzydlo/ports/internal/common/pb"
+
 	"github.com/arturskrzydlo/ports/internal/ports/adapters"
 
 	"github.com/arturskrzydlo/ports/internal/ports"
-
-	"github.com/arturskrzydlo/ports/internal/pb"
 )
 
 type appConfig struct {
@@ -36,7 +38,7 @@ func main() {
 	)
 	log := zap.New(core)
 
-	grpcServer, err := ports.NewServer(cfg.GRPCServerAddress, log)
+	grpcServer, err := grpc.NewServer(cfg.GRPCServerAddress, log)
 	if err != nil {
 		log.Error("error while creating a gRPC connection to ports service", zap.Error(err))
 		return

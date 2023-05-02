@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/arturskrzydlo/ports/internal/pb"
+	"github.com/arturskrzydlo/ports/internal/common/pb"
 )
 
 type Port struct {

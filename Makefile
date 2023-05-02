@@ -18,8 +18,8 @@ clean: ## Remove build artifacts.
 
 .PHONY: generate-proto
 generate-proto:
-	protoc --proto_path=proto/api --go_out=internal/pb --go_opt=paths=source_relative \
-		--go-grpc_out=internal/pb --go-grpc_opt=paths=source_relative  proto/api/ports.proto
+	protoc --proto_path=api --go_out=internal/common/pb --go_opt=paths=source_relative \
+		--go-grpc_out=internal/common/pb --go-grpc_opt=paths=source_relative  api/ports.proto
 
 .PHONY: lint
 lint: ## Lint the source code.

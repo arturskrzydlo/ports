@@ -17,7 +17,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	portsgrpc "github.com/arturskrzydlo/ports/internal/pb"
+	grpc2 "github.com/arturskrzydlo/ports/internal/common/grpc"
+
+	portsgrpc "github.com/arturskrzydlo/ports/internal/common/pb"
 )
 
 func TestPortsStoring(t *testing.T) {
@@ -90,7 +92,7 @@ func createRequestBodyFromTestFile(t *testing.T, testFilePath string) (*bytes.Bu
 func setupServer(t *testing.T) (sh *ServiceHandler, conn *grpc.ClientConn) {
 	t.Helper()
 	// TODO: get proper ports address
-	conn, err := NewClientConnectionContext(context.Background(), ":8090", 60)
+	conn, err := grpc2.NewClientConnectionContext(context.Background(), ":8090", 60)
 	require.NoError(t, err)
 	log, err := zap.NewDevelopment()
 	require.NoError(t, err)

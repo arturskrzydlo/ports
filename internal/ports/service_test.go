@@ -8,16 +8,16 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/arturskrzydlo/ports/internal/ports/adapters"
+	pb2 "github.com/arturskrzydlo/ports/internal/common/pb"
 
-	"github.com/arturskrzydlo/ports/internal/pb"
+	"github.com/arturskrzydlo/ports/internal/ports/adapters"
 )
 
 type portsServiceSuite struct {
 	suite.Suite
 
 	repo    Repository
-	service pb.PortServiceServer
+	service pb2.PortServiceServer
 }
 
 func TestRepository(t *testing.T) {
@@ -38,7 +38,7 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		portToStore := s.createPbPort()
 
 		// when
-		_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: portToStore})
+		_, err := s.service.CreatePort(context.Background(), &pb2.CreatePortRequest{Port: portToStore})
 
 		// then
 		s.Require().NoError(err)
@@ -51,14 +51,14 @@ func (s *portsServiceSuite) TestStoringPorts() {
 	s.Run("should update already existing port", func() {
 		// given
 		portToStore := s.createPbPort()
-		_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: portToStore})
+		_, err := s.service.CreatePort(context.Background(), &pb2.CreatePortRequest{Port: portToStore})
 		s.Require().NoError(err)
 
 		updatedPort := s.createPbPort()
 		updatedPort.Name = "updated-name"
 
 		// when
-		_, err = s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: updatedPort})
+		_, err = s.service.CreatePort(context.Background(), &pb2.CreatePortRequest{Port: updatedPort})
 
 		// then
 		s.Require().NoError(err)
@@ -69,8 +69,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 	})
 }
 
-func (s *portsServiceSuite) createPbPort() *pb.Port {
-	return &pb.Port{
+func (s *portsServiceSuite) createPbPort() *pb2.Port {
+	return &pb2.Port{
 		Name:        "name",
 		City:        "London",
 		Country:     "UK",

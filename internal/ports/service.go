@@ -7,19 +7,19 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	domainPort "github.com/arturskrzydlo/ports/internal/ports/domain/port"
+	pb2 "github.com/arturskrzydlo/ports/internal/common/pb"
 
-	"github.com/arturskrzydlo/ports/internal/pb"
+	domainPort "github.com/arturskrzydlo/ports/internal/ports/domain/port"
 )
 
 type APIServer struct {
-	pb.UnimplementedPortServiceServer
+	pb2.UnimplementedPortServiceServer
 	log  *zap.Logger
 	repo Repository
 }
 
-// this service could be separated out from grpc service to have a service layer separate
-// from api layer
+// TODO: this service could be separated out from grpc service to have a service layer separate
+// from api layer - however it would be really thin in this case
 func NewPortsService(log *zap.Logger, repo Repository) *APIServer {
 	return &APIServer{
 		log:  log,
@@ -27,7 +27,7 @@ func NewPortsService(log *zap.Logger, repo Repository) *APIServer {
 	}
 }
 
-func (s *APIServer) CreatePort(ctx context.Context, req *pb.CreatePortRequest) (*emptypb.Empty, error) {
+func (s *APIServer) CreatePort(ctx context.Context, req *pb2.CreatePortRequest) (*emptypb.Empty, error) {
 	s.log.Debug("creating port", zap.Any("port", req.Port))
 	port, err := portPBToPort(req.Port)
 	if err != nil {
@@ -41,7 +41,7 @@ func (s *APIServer) CreatePort(ctx context.Context, req *pb.CreatePortRequest) (
 	return &emptypb.Empty{}, nil
 }
 
-func (s *APIServer) GetPorts(ctx context.Context, _ *emptypb.Empty) (*pb.GetPortsResponse, error) {
+func (s *APIServer) GetPorts(ctx context.Context, _ *emptypb.Empty) (*pb2.GetPortsResponse, error) {
 	s.log.Debug("fetching list of ports")
 	ports, err := s.repo.GetPorts(ctx)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *APIServer) GetPorts(ctx context.Context, _ *emptypb.Empty) (*pb.GetPort
 	return portToResponsePayload(ports), nil
 }
 
-func portPBToPort(pbPort *pb.Port) (*domainPort.Port, error) {
+func portPBToPort(pbPort *pb2.Port) (*domainPort.Port, error) {
 	port, err := domainPort.NewPort(
 		pbPort.Id,
 		pbPort.Name,
@@ -69,10 +69,10 @@ func portPBToPort(pbPort *pb.Port) (*domainPort.Port, error) {
 	return port, nil
 }
 
-func portToResponsePayload(ports []*domainPort.Port) *pb.GetPortsResponse {
-	pbPorts := make([]*pb.Port, len(ports))
+func portToResponsePayload(ports []*domainPort.Port) *pb2.GetPortsResponse {
+	pbPorts := make([]*pb2.Port, len(ports))
 	for i, port := range ports {
-		pbPorts[i] = &pb.Port{
+		pbPorts[i] = &pb2.Port{
 			Name:        port.Name,
 			City:        port.City,
 			Country:     port.Country,
@@ -86,5 +86,5 @@ func portToResponsePayload(ports []*domainPort.Port) *pb.GetPortsResponse {
 			Id:          port.ID,
 		}
 	}
-	return &pb.GetPortsResponse{Ports: pbPorts}
+	return &pb2.GetPortsResponse{Ports: pbPorts}
 }

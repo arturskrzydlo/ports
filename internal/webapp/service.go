@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/arturskrzydlo/ports/internal/pb"
+	pb2 "github.com/arturskrzydlo/ports/internal/common/pb"
 )
 
 const (
@@ -33,7 +33,7 @@ type ServiceHandler struct {
 
 type Service struct {
 	log         *zap.Logger
-	portsClient pb.PortServiceClient
+	portsClient pb2.PortServiceClient
 }
 
 type errorResp struct {
@@ -118,12 +118,12 @@ func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []s
 	return createdPortIDs, nil
 }
 
-func NewService(logger *zap.Logger, portsClient pb.PortServiceClient) *Service {
+func NewService(logger *zap.Logger, portsClient pb2.PortServiceClient) *Service {
 	return &Service{log: logger, portsClient: portsClient}
 }
 
 func (s Service) CreatePort(ctx context.Context, port *Port) error {
-	_, err := s.portsClient.CreatePort(ctx, &pb.CreatePortRequest{Port: portToPB(port)})
+	_, err := s.portsClient.CreatePort(ctx, &pb2.CreatePortRequest{Port: portToPB(port)})
 	if err != nil {
 		return fmt.Errorf("failed to Create ports in Ports service:%w", err)
 	}

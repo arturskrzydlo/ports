@@ -1,4 +1,4 @@
-package webapp
+package grpc
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-// TODO: common package
 func NewClientConnectionContext(ctx context.Context, url string, keepaliveInSeconds int) (*grpc.ClientConn, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),

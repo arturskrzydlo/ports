@@ -11,7 +11,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/arturskrzydlo/ports/internal/pb"
+	"github.com/arturskrzydlo/ports/internal/common/grpc"
+
+	"github.com/arturskrzydlo/ports/internal/common/pb"
 
 	"github.com/arturskrzydlo/ports/internal/webapp"
 )
@@ -52,7 +54,7 @@ func main() {
 	)
 	log := zap.New(core)
 
-	conn, err := webapp.NewClientConnectionContext(context.Background(), cfg.PortsGRPServerAddress,
+	conn, err := grpc.NewClientConnectionContext(context.Background(), cfg.PortsGRPServerAddress,
 		cfg.GRPCKeepAliveInSeconds)
 	if err != nil {
 		log.Error("error while creating a gRPC connection to ports service", zap.Error(err))

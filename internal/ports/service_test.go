@@ -32,6 +32,10 @@ func (s *portsServiceSuite) SetupSuite() {
 	s.service = NewPortsService(log, s.repo)
 }
 
+func (s *portsServiceSuite) resetStorage() {
+	s.SetupSuite()
+}
+
 func (s *portsServiceSuite) TestStoringPorts() {
 	s.Run("should store new port", func() {
 		// given
@@ -46,6 +50,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		s.Require().NoError(err)
 		s.Assert().Len(portsResp.Ports, 1)
 		s.Assert().Equal(s.createPbPort(), portsResp.Ports[0])
+
+		s.resetStorage()
 	})
 
 	s.Run("should fail storing a port when it's invalid", func() {
@@ -61,6 +67,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		portsResp, err := s.service.GetPorts(context.Background(), &emptypb.Empty{})
 		s.Require().NoError(err)
 		s.Assert().Len(portsResp.Ports, 0)
+
+		s.resetStorage()
 	})
 
 	s.Run("should update already existing port", func() {
@@ -81,6 +89,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		s.Require().NoError(err)
 		s.Assert().Len(portsResp.Ports, 1)
 		s.Assert().Equal(updatedPort.Name, portsResp.Ports[0].Name)
+
+		s.resetStorage()
 	})
 }
 

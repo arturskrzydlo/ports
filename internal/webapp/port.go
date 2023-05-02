@@ -8,7 +8,7 @@ import (
 )
 
 type Port struct {
-	ID          string
+	ID          string    `json:"id"`
 	Name        string    `json:"name"`
 	City        string    `json:"city"`
 	Country     string    `json:"country"`
@@ -29,7 +29,7 @@ func decodePort(decoder *json.Decoder) (*Port, error) {
 
 	var port *Port
 
-	switch token.(type) {
+	switch typedToken := token.(type) {
 	case json.Delim:
 		// Do nothing for delimiters like "[" and "]"
 	case string: // json should start with port id key which is string
@@ -37,7 +37,7 @@ func decodePort(decoder *json.Decoder) (*Port, error) {
 		if decodeErr != nil {
 			return nil, fmt.Errorf("failed to decode to port: %w", decodeErr)
 		}
-		port.ID, _ = token.(string)
+		port.ID = typedToken
 	default:
 		return nil, fmt.Errorf("incorrect json token: %v", token)
 	}

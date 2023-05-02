@@ -42,7 +42,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 
 		// then
 		s.Require().NoError(err)
-		portsResp, err := s.service.GetPorts(context.Background(), new(emptypb.Empty))
+		portsResp, err := s.service.GetPorts(context.Background(), &emptypb.Empty{})
+		s.Require().NoError(err)
 		s.Assert().Len(portsResp.Ports, 1)
 		s.Assert().Equal(s.createPbPort(), portsResp.Ports[0])
 	})
@@ -51,6 +52,7 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		// given
 		portToStore := s.createPbPort()
 		_, err := s.service.CreatePort(context.Background(), &pb.CreatePortRequest{Port: portToStore})
+		s.Require().NoError(err)
 
 		updatedPort := s.createPbPort()
 		updatedPort.Name = "updated-name"
@@ -60,7 +62,8 @@ func (s *portsServiceSuite) TestStoringPorts() {
 
 		// then
 		s.Require().NoError(err)
-		portsResp, err := s.service.GetPorts(context.Background(), new(emptypb.Empty))
+		portsResp, err := s.service.GetPorts(context.Background(), &emptypb.Empty{})
+		s.Require().NoError(err)
 		s.Assert().Len(portsResp.Ports, 1)
 		s.Assert().Equal(updatedPort.Name, portsResp.Ports[0].Name)
 	})

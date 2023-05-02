@@ -6,33 +6,33 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/arturskrzydlo/ports/internal/ports/domain/port"
+	domainPort "github.com/arturskrzydlo/ports/internal/ports/domain/port"
 )
 
 type InMemoryRepo struct {
-	sync.RWMutex
+	mutex   sync.RWMutex
 	log     *zap.Logger
-	storage map[string]*port.Port
+	storage map[string]*domainPort.Port
 }
 
 func NewInMemoryRepo(logger *zap.Logger) *InMemoryRepo {
 	return &InMemoryRepo{
 		log:     logger,
-		storage: make(map[string]*port.Port),
+		storage: make(map[string]*domainPort.Port),
 	}
 }
 
-func (r *InMemoryRepo) CreatePort(ctx context.Context, port *port.Port) error {
-	r.Lock()
-	defer r.Unlock()
+func (r *InMemoryRepo) CreatePort(_ context.Context, port *domainPort.Port) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	r.storage[port.ID] = port
 	return nil
 }
 
-func (r *InMemoryRepo) GetPorts(ctx context.Context) ([]*port.Port, error) {
-	r.RLock()
-	defer r.RUnlock()
-	ports := make([]*port.Port, 0)
+func (r *InMemoryRepo) GetPorts(_ context.Context) ([]*domainPort.Port, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+	ports := make([]*domainPort.Port, 0)
 	for _, storagePort := range r.storage {
 		if storagePort != nil {
 			ports = append(ports, storagePort)

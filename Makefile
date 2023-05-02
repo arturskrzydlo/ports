@@ -1,5 +1,4 @@
-# Install all development tools and build artifacts to the project's
-# `bin` directory.
+# Install all development tools to the `bin` directory.
 export GOBIN=$(CURDIR)/bin
 
 # Default to the system 'go'.

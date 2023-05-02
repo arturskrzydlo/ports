@@ -11,11 +11,11 @@ import (
 )
 
 // TODO: common package
-func NewClientConnectionContext(ctx context.Context, url string) (*grpc.ClientConn, error) {
+func NewClientConnectionContext(ctx context.Context, url string, keepaliveInSeconds int) (*grpc.ClientConn, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                2 * time.Minute,
+			Time:                time.Duration(keepaliveInSeconds) * time.Second,
 			PermitWithoutStream: true,
 		}),
 	}

@@ -56,7 +56,7 @@ func TestPortsStoring(t *testing.T) {
 		err := json.NewDecoder(recorder.Body).Decode(&ports)
 		require.NoError(t, err)
 
-		// this can be validated in much better way, to compare all the fields
+		// TODO: this can be validated in much better way, to compare all the fields
 		// and not rely on hardcoded strings but rather values from json file
 		expectedPortIDs := []string{"AEAJM", "AEAUH"}
 		counter := 0
@@ -90,7 +90,7 @@ func createRequestBodyFromTestFile(t *testing.T, testFilePath string) (*bytes.Bu
 func setupServer(t *testing.T) (sh *ServiceHandler, conn *grpc.ClientConn) {
 	t.Helper()
 	// TODO: get proper ports address
-	conn, err := NewClientConnectionContext(context.Background(), ":8090")
+	conn, err := NewClientConnectionContext(context.Background(), ":8090", 60)
 	require.NoError(t, err)
 	log, err := zap.NewDevelopment()
 	require.NoError(t, err)

@@ -16,16 +16,17 @@ import (
 
 const (
 	portsEndpointName = "ports"
-	maxPartSizeInMB   = 2
+	maxPartSizeInMB   = 10
+	mbShift           = 20
 )
 
-type WebAppService interface {
+type PortsService interface {
 	CreatePort(ctx context.Context, port *Port) error
 	FetchPorts(ctx context.Context) ([]*Port, error)
 }
 
 type ServiceHandler struct {
-	svc        WebAppService
+	svc        PortsService
 	httpServer *http.Server
 	log        *zap.Logger
 }
@@ -39,7 +40,7 @@ type errorResp struct {
 	Error string `json:"error_message"`
 }
 
-func NewServiceHandler(svc WebAppService, httpServer *http.Server, logger *zap.Logger) *ServiceHandler {
+func NewServiceHandler(svc PortsService, httpServer *http.Server, logger *zap.Logger) *ServiceHandler {
 	return &ServiceHandler{
 		svc:        svc,
 		httpServer: httpServer,
@@ -86,8 +87,8 @@ func (sh *ServiceHandler) ports(respWriter http.ResponseWriter, request *http.Re
 }
 
 func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []string, err error) {
-	// Get the JSON file from the request body
-	err = request.ParseMultipartForm(maxPartSizeInMB << 20)
+	// Get the JSON file from the request body (max part size is 10MB)
+	err = request.ParseMultipartForm(maxPartSizeInMB << mbShift)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse multipart form: %w", err)
 	}
@@ -117,9 +118,6 @@ func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []s
 	return createdPortIDs, nil
 }
 
-func (sh *ServiceHandler) fetchPorts() {
-}
-
 func NewService(logger *zap.Logger, portsClient pb.PortServiceClient) *Service {
 	return &Service{log: logger, portsClient: portsClient}
 }
@@ -133,7 +131,7 @@ func (s Service) CreatePort(ctx context.Context, port *Port) error {
 }
 
 func (s Service) FetchPorts(ctx context.Context) ([]*Port, error) {
-	getPortsResponse, err := s.portsClient.GetPorts(ctx, new(emptypb.Empty))
+	getPortsResponse, err := s.portsClient.GetPorts(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch ports from Ports service:%w", err)
 	}

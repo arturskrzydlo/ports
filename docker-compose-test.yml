@@ -3,7 +3,7 @@ services:
   ports-service:
     build:
       context: .
-      dockerfile: Dockerfile-ports
+      target: ports
     environment:
       GRPC_SERV_ADDRESS: 0.0.0.0:8090
     ports:

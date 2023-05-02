@@ -14,7 +14,7 @@ type apiServer struct {
 	log *zap.Logger
 }
 
-func NewEligibilityService(log *zap.Logger) pb.PortServiceServer {
+func NewPortsService(log *zap.Logger) pb.PortServiceServer {
 	return &apiServer{
 		log: log,
 	}

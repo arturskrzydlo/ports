@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	pb.RegisterPortServiceServer(grpcServer, ports.NewEligibilityService(log))
+	pb.RegisterPortServiceServer(grpcServer, ports.NewPortsService(log))
 	if err = grpcServer.Run(context.Background()); err != nil {
 		log.Error("ports server experienced run error", zap.Error(err))
 		return

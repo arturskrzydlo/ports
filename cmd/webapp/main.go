@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/caarlos0/env/v6"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/arturskrzydlo/ports/internal/common/grpc"
 
@@ -46,15 +47,17 @@ func main() {
 		panic("failed to parse app config: " + err.Error())
 	}
 
-	zapCfg := zap.NewProductionConfig()
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zapCfg.EncoderConfig),
-		zapcore.AddSync(io.Discard),
-		zapcore.InfoLevel,
-	)
-	log := zap.New(core)
+	log, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer log.Sync()
 
-	conn, err := grpc.NewClientConnectionContext(context.Background(), cfg.PortsGRPServerAddress,
+	ctx, cancel := context.WithCancel(context.Background())
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+
+	conn, err := grpc.NewClientConnectionContext(ctx, cfg.PortsGRPServerAddress,
 		cfg.GRPCKeepAliveInSeconds)
 	if err != nil {
 		log.Error("error while creating a gRPC connection to ports service", zap.Error(err))
@@ -74,7 +77,25 @@ func main() {
 		IdleTimeout:       time.Duration(cfg.IdleTimeout) * time.Second,
 	}
 
+	go cancelOnSignal(cancel, signalCh, log, srv)
+
 	handler := webapp.NewServiceHandler(service, srv, log)
 	handler.Register(mux)
+
+	log.Info("Successfully started webapp service")
 	handler.Run()
+}
+
+func cancelOnSignal(cancel context.CancelFunc, ch chan os.Signal, log *zap.Logger, server *http.Server) {
+	sig := <-ch
+	log.Info("Shutting down application on signal", zap.String("signal", sig.String()))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := server.Shutdown(ctx)
+	if err != nil {
+		log.Error("failed to shutdown a server", zap.Error(err))
+	}
+	cancel()
 }

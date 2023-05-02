@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/caarlos0/env/v6"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/arturskrzydlo/ports/internal/common/grpc"
 
@@ -30,13 +31,15 @@ func main() {
 		panic("failed to parse app config: " + err.Error())
 	}
 
-	zapCfg := zap.NewProductionConfig()
-	core := zapcore.NewCore(
-		zapcore.NewJSONEncoder(zapCfg.EncoderConfig),
-		zapcore.AddSync(io.Discard),
-		zapcore.InfoLevel,
-	)
-	log := zap.New(core)
+	log, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer log.Sync()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 
 	grpcServer, err := grpc.NewServer(cfg.GRPCServerAddress, log)
 	if err != nil {
@@ -45,10 +48,18 @@ func main() {
 	}
 
 	pb.RegisterPortServiceServer(grpcServer, ports.NewPortsService(log, adapters.NewInMemoryRepo(log)))
-	if err = grpcServer.Run(context.Background()); err != nil {
-		log.Error("ports server experienced run error", zap.Error(err))
-		return
-	}
+
+	go func() {
+		if err = grpcServer.Run(ctx); err != nil {
+			log.Error("ports server experienced run error", zap.Error(err))
+			return
+		}
+	}()
+
+	// can be adde
+	log.Info("Successfully started ports service")
+
+	cancelOnSignal(cancel, signalCh, log)
 }
 
 // ParseConfig parses a struct containing `env` tags and loads its values from
@@ -59,4 +70,10 @@ func ParseConfig(cfg interface{}) error {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
 	return nil
+}
+
+func cancelOnSignal(cancel context.CancelFunc, ch chan os.Signal, log *zap.Logger) {
+	sig := <-ch
+	log.Info("Shutting down application on signal", zap.String("signal", sig.String()))
+	cancel()
 }

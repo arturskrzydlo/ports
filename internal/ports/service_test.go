@@ -48,6 +48,21 @@ func (s *portsServiceSuite) TestStoringPorts() {
 		s.Assert().Equal(s.createPbPort(), portsResp.Ports[0])
 	})
 
+	s.Run("should fail storing a port when it's invalid", func() {
+		// given port with missing id
+		portToStore := s.createPbPort()
+		portToStore.Id = ""
+
+		// when
+		_, err := s.service.CreatePort(context.Background(), &pb2.CreatePortRequest{Port: portToStore})
+
+		// then
+		s.Require().Error(err)
+		portsResp, err := s.service.GetPorts(context.Background(), &emptypb.Empty{})
+		s.Require().NoError(err)
+		s.Assert().Len(portsResp.Ports, 0)
+	})
+
 	s.Run("should update already existing port", func() {
 		// given
 		portToStore := s.createPbPort()

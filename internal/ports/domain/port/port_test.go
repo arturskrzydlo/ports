@@ -13,7 +13,7 @@ func TestPortCreation(t *testing.T) {
 		code string
 		err  bool
 	}{
-		"should create port when ID and Code fields are present": {
+		"should create port when ID and code fields are present": {
 			ID:   "some-id",
 			code: "some-code",
 			err:  false,

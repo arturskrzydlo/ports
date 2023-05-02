@@ -25,7 +25,7 @@ func NewPort(id string,
 	timezone string,
 	unlocs []string,
 	code string,
-) *Port {
+) (*Port, error) {
 	return &Port{
 		ID:          id,
 		Name:        name,
@@ -38,5 +38,5 @@ func NewPort(id string,
 		Timezone:    timezone,
 		Unlocs:      unlocs,
 		Code:        code,
-	}
+	}, nil
 }

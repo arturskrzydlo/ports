@@ -60,3 +60,19 @@ func portToPB(port *Port) *pb.Port {
 		Code:        port.Code,
 	}
 }
+
+func pbToPort(portPb *pb.Port) *Port {
+	return &Port{
+		ID:          portPb.Id,
+		Name:        portPb.Name,
+		City:        portPb.City,
+		Country:     portPb.Country,
+		Alias:       portPb.Alias,
+		Regions:     portPb.Regions,
+		Coordinates: portPb.Coordinates,
+		Province:    portPb.Province,
+		Timezone:    portPb.Timezone,
+		Unlocs:      portPb.Unlocs,
+		Code:        portPb.Code,
+	}
+}

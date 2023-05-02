@@ -5,6 +5,7 @@ package webapp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -26,7 +27,6 @@ func TestPortsStoring(t *testing.T) {
 		// given
 		// setup a request - create it from file
 		requestBody, writer := createRequestBodyFromTestFile(t, testFilePath)
-		// reqBodyString := requestBody.String()
 
 		// setup a server service
 		handler, conn := setupServer(t)
@@ -45,18 +45,30 @@ func TestPortsStoring(t *testing.T) {
 		// all ports from ports.json file
 		expectedResponse := `["AEAJM","AEAUH"]`
 		assert.Equal(t, expectedResponse, recorder.Body.String())
-		// assert that json has stored all values by requesting next call
-		/*		recorder = httptest.NewRecorder()
-				req = httptest.NewRequest(http.MethodGet, "/ports", nil)
-				req.Header.Set("Content-Type", writer.FormDataContentType())
-				handler.ports(recorder, req)
 
-				var ports string
-				err := json.NewDecoder(recorder.Body).Decode(&ports)
-				require.NoError(t, err)
-				// ordering might be an issue
-				assert.Equal(t, http.StatusOK, recorder.Code)
-				assert.Equal(t, reqBodyString, ports)*/
+		// assert that json has stored all values by requesting next call
+		recorder = httptest.NewRecorder()
+		req = httptest.NewRequest(http.MethodGet, "/ports", nil)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		handler.ports(recorder, req)
+
+		var ports []*Port
+		err := json.NewDecoder(recorder.Body).Decode(&ports)
+		require.NoError(t, err)
+
+		// this can be validated in much better way, to compare all the fields
+		// and not rely on hardcoded strings but rather values from json file
+		expectedPortIDs := []string{"AEAJM", "AEAUH"}
+		counter := 0
+		for _, expPortID := range expectedPortIDs {
+			for _, port := range ports {
+				if port.ID == expPortID {
+					counter++
+				}
+			}
+		}
+		assert.Equal(t, http.StatusOK, recorder.Code)
+		assert.Equal(t, len(expectedPortIDs), counter)
 	})
 }
 

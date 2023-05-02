@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/arturskrzydlo/ports/internal/pb"
 )
@@ -20,6 +21,7 @@ const (
 
 type WebAppService interface {
 	CreatePort(ctx context.Context, port *Port) error
+	FetchPorts(ctx context.Context) ([]*Port, error)
 }
 
 type ServiceHandler struct {
@@ -58,13 +60,18 @@ func (sh *ServiceHandler) Run() {
 
 func (sh *ServiceHandler) ports(respWriter http.ResponseWriter, request *http.Request) {
 	var (
-		err              error
-		createdPortNames []string
+		err        error
+		response   any
+		statusCode int
 	)
 
 	switch request.Method {
 	case http.MethodPost:
-		createdPortNames, err = sh.ingestPorts(request)
+		response, err = sh.ingestPorts(request)
+		statusCode = http.StatusCreated
+	case http.MethodGet:
+		response, err = sh.svc.FetchPorts(request.Context())
+		statusCode = http.StatusOK
 	default:
 		http.Error(respWriter, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -75,7 +82,7 @@ func (sh *ServiceHandler) ports(respWriter http.ResponseWriter, request *http.Re
 		sh.renderErr(respWriter, err.Error(), http.StatusInternalServerError)
 	}
 
-	sh.renderResponse(respWriter, createdPortNames, http.StatusCreated)
+	sh.renderResponse(respWriter, response, statusCode)
 }
 
 func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []string, err error) {
@@ -110,17 +117,32 @@ func (sh *ServiceHandler) ingestPorts(request *http.Request) (createdPortIDs []s
 	return createdPortIDs, nil
 }
 
+func (sh *ServiceHandler) fetchPorts() {
+}
+
 func NewService(logger *zap.Logger, portsClient pb.PortServiceClient) *Service {
 	return &Service{log: logger, portsClient: portsClient}
 }
 
 func (s Service) CreatePort(ctx context.Context, port *Port) error {
-	// send call via grpc to ports service to create a new port
 	_, err := s.portsClient.CreatePort(ctx, &pb.CreatePortRequest{Port: portToPB(port)})
 	if err != nil {
 		return fmt.Errorf("failed to Create ports in Ports service:%w", err)
 	}
 	return nil
+}
+
+func (s Service) FetchPorts(ctx context.Context) ([]*Port, error) {
+	getPortsResponse, err := s.portsClient.GetPorts(ctx, new(emptypb.Empty))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch ports from Ports service:%w", err)
+	}
+
+	allPorts := make([]*Port, len(getPortsResponse.Ports))
+	for i, portPb := range getPortsResponse.Ports {
+		allPorts[i] = pbToPort(portPb)
+	}
+	return allPorts, nil
 }
 
 func (sh *ServiceHandler) renderErr(w http.ResponseWriter, errMsg string, status int) {

@@ -1,5 +1,7 @@
 package port
 
+import "errors"
+
 type Port struct {
 	ID          string
 	Name        string
@@ -26,6 +28,12 @@ func NewPort(id string,
 	unlocs []string,
 	code string,
 ) (*Port, error) {
+	if id == "" {
+		return nil, errors.New("port id can't be empty")
+	}
+	if code == "" {
+		return nil, errors.New("port code can't be empty")
+	}
 	return &Port{
 		ID:          id,
 		Name:        name,
